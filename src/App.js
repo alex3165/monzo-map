@@ -20,13 +20,16 @@ function getTransactions() {
   return fetch(req).then(res => res.json());
 }
 
+const sidepanWidth = 500;
+
 const styles = {
   sidepan: {
-    width: 400,
+    width: sidepanWidth,
     height: '100%',
     backgroundColor: 'white',
     position: 'absolute',
-    top: 0
+    top: 0,
+    borderRight: '1px solid rgb(80%, 80%, 80%)'
   }
 }
 
@@ -34,7 +37,8 @@ class App extends Component {
 
   state = {
     transactions: {},
-    selected: null
+    selected: [],
+    closed: false
   };
 
   componentWillMount() {
@@ -50,7 +54,7 @@ class App extends Component {
 
   onClose = () => {
     this.setState({
-      selected: null
+      closed: true
     });
   };
 
@@ -64,14 +68,19 @@ class App extends Component {
 
   onMarkerClick(transaction) {
     this.setState({
-      selected: transaction.id
+      selected: this.state.selected.concat(transaction.id),
+      closed: false
     });
 
     console.log(transaction);
   }
 
+  onDateChange(...args) {
+    console.log(args);
+  }
+
   render() {
-    const { selected, transactions } = this.state;
+    const { selected, transactions, closed } = this.state;
 
     return (
       <div>
@@ -101,7 +110,7 @@ class App extends Component {
           </Layer>
         </ReactMapboxGl>
         {
-            <Motion style={{ x: spring(selected ? 0 : -400) }}>
+            <Motion style={{ x: spring(closed ? - sidepanWidth : 0) }}>
               {
                 ({ x }) => (
                   <div style={{
@@ -109,7 +118,10 @@ class App extends Component {
                     transform: `translate3d(${x}px, 0, 0)`,
                     WebkitTransform: `translate3d(${x}px, 0, 0)`
                   }}>
-                    <Sidepan transaction={transactions[selected]} onClose={this.onClose}/>
+                    <Sidepan
+                      transactions={transactions}
+                      onClose={this.onClose}
+                      onDateChange={this.onDateChange}/>
                   </div>
                 )
               }

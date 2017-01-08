@@ -6,7 +6,10 @@
     "react-scripts": "0.8.4"
   },
   "dependencies": {
+    "@blueprintjs/core": "^1.5.0",
+    "@blueprintjs/datetime": "^1.4.1",
     "react": "^15.4.2",
+    "react-addons-css-transition-group": "^15.4.2",
     "react-dom": "^15.4.2",
     "react-mapbox-gl": "^0.25.0",
     "react-motion": "^0.4.7"

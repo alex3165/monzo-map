@@ -1,0 +1,13 @@
+.pt-menu.pt-daterangepicker-shortcuts {
+    display: none;
+}
+
+.pt-menu.pt-daterangepicker-shortcuts ~ .DayPicker {
+    padding-left: 0px;
+    border-left: none;
+}
+
+.pt-daterangepicker {
+    display: flex;
+    justify-content: center;
+}
