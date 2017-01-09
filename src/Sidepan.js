@@ -10,23 +10,49 @@ const styles = {
         display: 'flex',
         flexDirection: 'column'
     },
+    merchant: {
+      marginBottom: 0
+    },
     controlPanel: {},
     transaction: {
         width: 440,
         height: 60,
         border: '1px solid rgb(80%, 80%, 80%)',
         borderRadius: 5,
-        margin: 'auto'
+        margin: '10px auto',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '0px 10px',
+        cursor: 'pointer'
+    },
+    selected: {
+        border: '1px solid #42A3F7',
     },
     transactionsContainer: {
         overflow: 'auto',
         height: 500
+    },
+    negativeAmount: {
+      color: '#F06452'
+    },
+    positiveAmount: {
+      color: '#4DEAAB'
     }
 }
 
 class Sidepan extends Component {
     render() {
-        const { onClose, onDateChange, transactions } = this.props;
+        const { onClose, onDateChange, transactions, selected, onToggleSelect } = this.props;
+        const sortedKeys = Object.keys(transactions).reduce((acc, next) => {
+            if (selected.includes(next)) {
+                acc.unshift(next);
+            } else {
+                acc.push(next)
+            }
+
+            return acc;
+        }, []);
 
         return (
             <div style={styles.container}>
@@ -38,13 +64,21 @@ class Sidepan extends Component {
                 </div>
                 <div style={styles.transactionsContainer}>
                     {
-                        Object.keys(transactions).map(trId => {
-                            const tr = transactions[trId].merchant;
+                        sortedKeys.map(trId => {
+                            const tr = transactions[trId];
+
                             return (
-                                <div key={trId} style={styles.transaction}>
-                                {
-                                    tr && tr.name
-                                }
+                                <div
+                                    key={trId} 
+                                    style={{
+                                        ...styles.transaction,
+                                        ...(selected.includes(trId) && styles.selected)
+                                    }}
+                                    onClick={onToggleSelect.bind(this, trId)}>
+                                    <h4 style={styles.merchant}>{ tr.merchant && tr.merchant.name }</h4>
+                                    <div style={{
+                                      ...(tr.amount > 0 ? styles.positiveAmount : styles.negativeAmount)
+                                    }}>{ tr.amount * 0.01 } £</div>
                                 </div>
                             );
                         })

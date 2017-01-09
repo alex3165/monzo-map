@@ -3,6 +3,8 @@ import ReactMapboxGl, { Layer, Feature } from "react-mapbox-gl";
 import config from "./monzo.json";
 import Sidepan from './Sidepan';
 import { Motion, spring } from 'react-motion';
+import moment from 'moment';
+import { filter } from 'lodash';
 
 const containerStyle = {
   height: "100vh",
@@ -38,12 +40,18 @@ class App extends Component {
   state = {
     transactions: {},
     selected: [],
-    closed: false
+    closed: false,
+    dateFilter: []
   };
 
   componentWillMount() {
     getTransactions().then(({ transactions }) => {
-      const formattedTransaction = transactions.reduce((acc, next) => {
+      const formattedTransaction = transactions
+      .sort((tr1, tr2) => {
+        const res = moment(tr1.created).isBefore(moment(tr2.created));
+        return res ? 1 : -1;
+      })
+      .reduce((acc, next) => {
         acc[next.id] = next;
         return acc;
       }, {});
@@ -66,21 +74,44 @@ class App extends Component {
     map.getCanvas().style.cursor = "";
   }
 
-  onMarkerClick(transaction) {
+  onToggleSelect(transactionId) {
+    const { selected } = this.state;
+    if (selected.includes(transactionId)) {
+      this.setState({
+        selected: selected.filter(trId => trId !== transactionId),
+        closed: false
+      });
+    } else {
+      this.setState({
+        selected: selected.concat(transactionId),
+        closed: false
+      });
+    }
+  };
+
+  onDateChange = (dates) => {
     this.setState({
-      selected: this.state.selected.concat(transaction.id),
-      closed: false
+      dateFilter: dates
     });
 
-    console.log(transaction);
-  }
-
-  onDateChange(...args) {
-    console.log(args);
-  }
+    console.log(dates);
+  };
 
   render() {
-    const { selected, transactions, closed } = this.state;
+    const { selected, closed, dateFilter } = this.state;
+    let { transactions } = this.state;
+
+    console.log(selected);
+
+    if (dateFilter[0] && dateFilter[1]) {
+      transactions = filter(transactions, tr => {
+        const trDate = moment(tr.created);
+        const min = moment(dateFilter[0]);
+        const max = moment(dateFilter[1]);
+
+        return trDate.isAfter(min) && trDate.isBefore(max);
+      });
+    }
 
     return (
       <div>
@@ -103,7 +134,7 @@ class App extends Component {
                       coordinates={[transaction.merchant.address.longitude, transaction.merchant.address.latitude]}
                       onHover={this.onHover}
                       onEndHover={this.onEndHover}
-                      onClick={this.onMarkerClick.bind(this, transaction)}/>
+                      onClick={this.onToggleSelect.bind(this, transaction.id)}/>
                   )
                 })
             }
@@ -120,6 +151,8 @@ class App extends Component {
                   }}>
                     <Sidepan
                       transactions={transactions}
+                      selected={selected}
+                      onToggleSelect={this.onToggleSelect.bind(this)}
                       onClose={this.onClose}
                       onDateChange={this.onDateChange}/>
                   </div>
